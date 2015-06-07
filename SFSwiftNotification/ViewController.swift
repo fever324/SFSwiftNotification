@@ -16,22 +16,15 @@ class ViewController: UIViewController, SFSwiftNotificationProtocol {
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
-        
         notifyFrame = CGRectMake(0, 0, CGRectGetMaxX(self.view.frame), 50)
-        notifyView = SFSwiftNotification(frame: notifyFrame!,
-                                         title: nil,
-                                 animationType: AnimationType.AnimationTypeCollision,
-                                     direction: Direction.LeftToRight,
-                                      delegate: self)
-        notifyView!.backgroundColor = UIColor.orangeColor()
-        notifyView!.label.textColor = UIColor.whiteColor()
-        notifyView!.label.text = "This is an SFSwiftNotification"
+        
+        notifyView = SFSwiftNotification(title: "hi")
+        notifyView?.setTitleColor(UIColor.blackColor())
         self.view.addSubview(notifyView!)
     }
     
     @IBAction func notify(sender : AnyObject) {
-        
-        self.notifyView!.animate(notifyFrame!, delay: 1)
+        self.notifyView!.show()
     }
     
     func didNotifyFinishedAnimation(results: Bool) {

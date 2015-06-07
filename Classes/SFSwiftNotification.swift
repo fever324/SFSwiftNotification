@@ -34,7 +34,7 @@ protocol SFSwiftNotificationProtocol {
 
 class SFSwiftNotification: UIView, UICollisionBehaviorDelegate, UIDynamicAnimatorDelegate {
     
-    var label = UILabel()
+    private var label = UILabel()
     var animationType:AnimationType?
     var animationSettings = AnimationSettings()
     var direction:Direction?
@@ -49,6 +49,20 @@ class SFSwiftNotification: UIView, UICollisionBehaviorDelegate, UIDynamicAnimato
         super.init(coder: aDecoder)
     }
     
+    init(title: String) {
+        let size = SFSwiftNotification.getNotificationSize()
+        super.init(frame:size)
+        
+        self.animationType = .AnimationTypeCollision
+        self.direction = .TopToBottom
+        
+        setUpLabel(title)
+        setNotificationBackgroundColor(UIColor.orangeColor())
+        setTitleColor(UIColor.whiteColor())
+        
+        offScreen()
+    }
+    
     init(frame: CGRect, title: NSString?, animationType:AnimationType, direction:Direction, delegate: SFSwiftNotificationProtocol?) {
         super.init(frame: frame)
         
@@ -57,7 +71,9 @@ class SFSwiftNotification: UIView, UICollisionBehaviorDelegate, UIDynamicAnimato
         self.delegate = delegate
         
         label = UILabel(frame: self.frame)
-        label.text = title
+        if let titleString = title{
+            label.text = titleString as String
+        }
         label.textAlignment = NSTextAlignment.Center
         self.addSubview(label)
         
@@ -157,8 +173,7 @@ class SFSwiftNotification: UIView, UICollisionBehaviorDelegate, UIDynamicAnimato
         )
     }
     
-    func dynamicAnimatorDidPause(animator: UIDynamicAnimator!) {
-        
+    func dynamicAnimatorDidPause(animator: UIDynamicAnimator) {
         hide(self.toFrame, delay: self.delay)
     }
     
@@ -173,9 +188,43 @@ class SFSwiftNotification: UIView, UICollisionBehaviorDelegate, UIDynamicAnimato
                 self.frame = self.offScreenFrame
             }, completion: {
                 (value: Bool) in
-                self.delegate!.didNotifyFinishedAnimation(true)
+                self.delegate?.didNotifyFinishedAnimation(true)
                 self.canNotify = true
             }
         )
     }
+    
+    func show(){
+        self.animate(self.frame, delay: 1)
+    }
+    
+    private func setUpLabel(title:String?) {
+        label = UILabel(frame: self.frame)
+        if let titleString = title{
+            label.text = titleString as String
+        }
+        label.textAlignment = NSTextAlignment.Center
+        self.addSubview(label)
+        
+    }
+    
+    func setTitleText(text:String) {
+        self.label.text = text
+    }
+    
+    func setNotificationBackgroundColor(color:UIColor) {
+        self.backgroundColor = color
+    }
+    
+    func setTitleColor(color:UIColor){
+        self.label.textColor = color
+    }
+    
+    static func getNotificationSize() -> CGRect {
+        var width = UIScreen.mainScreen().bounds.width
+        var height = 50
+        let size = CGRectMake(0, 0, CGRectGetMaxX(UIScreen.mainScreen().bounds), 50)
+        return size
+    }
+    
 }
