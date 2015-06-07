@@ -20,8 +20,7 @@ Usage
 --------------------
 
 
-In your ViewController
-***If you want to simply display a notification using the following line.
+#####If you want to simply display a notification using the following line.
 ```swift 
         let notifyView = SFSwiftNotification(title: "hi")
         notifyView.show()
@@ -56,9 +55,9 @@ class ViewController: UIViewController, SFSwiftNotificationProtocol {
 #####To start the notification:
 
 ```swift
-    @IBAction func notify(sender : AnyObject) {
-        notifyView.show()    
-    }
+@IBAction func notify(sender : AnyObject) {
+    notifyView.show()    
+}
 ```
 
 Settings
