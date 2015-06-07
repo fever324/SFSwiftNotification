@@ -2,7 +2,7 @@ SFSwiftNotification
 =============
 
 
-Simple custom user notifications
+Simple custom user notifications. The default theme tries to mimic native iOS 8 style. But the view is fully customizable.
 
 
 Install
@@ -21,31 +21,43 @@ Usage
 
 
 In your ViewController
-
-```swift
-	var notifyView:SFSwiftNotification?
+***If you want to simply display a notification using the following line.
+```swift 
+        let notifyView = SFSwiftNotification(title: "hi")
+        notifyView.show()
 ```
-
-In ```viewDidLoad()```
-
+######If you want to handle tap or change animationType and directions, you can use the the following initializer  
 ```swift
-    notifyView = SFSwiftNotification(frame: notifyFrame,
-                                         title: nil,
+    let notifyView = SFSwiftNotification(title: "Hi",
                                  animationType: AnimationType.AnimationTypeCollision,
                                      direction: Direction.LeftToRight,
                                       delegate: self)
-    notifyView!.backgroundColor = UIColor.orangeColor()
-    notifyView!.label.textColor = UIColor.whiteColor()
-    notifyView!.label.text = "This is an SFSwiftNotification"
-    self.view.addSubview(notifyView)
 ```
-
-To start the notification:
+#####And of course you need to implement SFSwiftNotificationProtocol
+```swift
+class ViewController: UIViewController, SFSwiftNotificationProtocol {
+...
+    func didNotifyFinishedAnimation(results: Bool) {
+        
+        println("SFSwiftNotification finished animation")
+    }
+    
+    func didTapNotification() {
+        
+        let tapAlert = UIAlertController(title: "SFSwiftNotification",
+            message: "You just tapped the notificatoion",
+            preferredStyle: UIAlertControllerStyle.Alert)
+        tapAlert.addAction(UIAlertAction(title: "OK", style: .Destructive, handler: nil))
+        self.presentViewController(tapAlert, animated: true, completion: nil)
+    }
+...
+}
+```
+#####To start the notification:
 
 ```swift
     @IBAction func notify(sender : AnyObject) {
-        
-        self.notifyView!.animate(notifyFrame, delay: 1)
+        notifyView.show()    
     }
 ```
 
