@@ -11,19 +11,17 @@ import UIKit
 class ViewController: UIViewController, SFSwiftNotificationProtocol {
     
     var notifyFrame:CGRect?
-    var notifyView:SFSwiftNotification?
+    var notifyView:SFSwiftNotification!
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
-        notifyFrame = CGRectMake(0, 0, CGRectGetMaxX(self.view.frame), 50)
-        
-        notifyView = SFSwiftNotification(title: "hi")
-        notifyView?.setTitleColor(UIColor.blackColor())
-        self.view.addSubview(notifyView!)
+        // Do any additional setup after loading the view, typically from a nib.        
     }
     
     @IBAction func notify(sender : AnyObject) {
+        notifyFrame = CGRectMake(0, 0, CGRectGetMaxX(self.view.frame), 50)
+        
+        notifyView = SFSwiftNotification(title: "hi")
         self.notifyView!.show()
     }
     

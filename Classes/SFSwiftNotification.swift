@@ -43,7 +43,7 @@ class SFSwiftNotification: UIView, UICollisionBehaviorDelegate, UIDynamicAnimato
     var canNotify = true
     var offScreenFrame = CGRect()
     var toFrame = CGRect()
-    var delay = NSTimeInterval()
+    private var delay = NSTimeInterval(1)
     
     required init(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
@@ -52,30 +52,27 @@ class SFSwiftNotification: UIView, UICollisionBehaviorDelegate, UIDynamicAnimato
     init(title: String) {
         let size = SFSwiftNotification.getNotificationSize()
         super.init(frame:size)
+        addSelfToTopControllerView()
         
         self.animationType = .AnimationTypeCollision
         self.direction = .TopToBottom
         
         setUpLabel(title)
-        setNotificationBackgroundColor(UIColor.orangeColor())
+        setNotificationBackgroundColor(UIColor.blackColor().colorWithAlphaComponent(0.5))
         setTitleColor(UIColor.whiteColor())
         
         offScreen()
     }
     
-    init(frame: CGRect, title: NSString?, animationType:AnimationType, direction:Direction, delegate: SFSwiftNotificationProtocol?) {
+    init(frame: CGRect, title: String?, animationType:AnimationType, direction:Direction, delegate: SFSwiftNotificationProtocol?) {
         super.init(frame: frame)
-        
+        addSelfToTopControllerView()
+
         self.animationType = animationType
         self.direction = direction
         self.delegate = delegate
         
-        label = UILabel(frame: self.frame)
-        if let titleString = title{
-            label.text = titleString as String
-        }
-        label.textAlignment = NSTextAlignment.Center
-        self.addSubview(label)
+        setUpLabel(title)
         
         // Create gesture recognizer to detect notification touches
         var tapReconizer = UITapGestureRecognizer()
@@ -174,7 +171,7 @@ class SFSwiftNotification: UIView, UICollisionBehaviorDelegate, UIDynamicAnimato
     }
     
     func dynamicAnimatorDidPause(animator: UIDynamicAnimator) {
-        hide(self.toFrame, delay: self.delay)
+        hide(self.frame, delay: self.delay)
     }
     
     func hide(toFrame:CGRect, delay:NSTimeInterval) {
@@ -186,45 +183,69 @@ class SFSwiftNotification: UIView, UICollisionBehaviorDelegate, UIDynamicAnimato
             options: (.BeginFromCurrentState | .AllowUserInteraction),
             animations:{
                 self.frame = self.offScreenFrame
-            }, completion: {
+            },
+            completion: {
                 (value: Bool) in
                 self.delegate?.didNotifyFinishedAnimation(true)
                 self.canNotify = true
+                self.removeFromSuperview()
             }
         )
     }
     
     func show(){
-        self.animate(self.frame, delay: 1)
+        self.animate(self.frame, delay: self.delay)
     }
     
-    private func setUpLabel(title:String?) {
+    private func setUpLabel(optionalTitle:String?) {
         label = UILabel(frame: self.frame)
-        if let titleString = title{
-            label.text = titleString as String
+        if let title = optionalTitle{
+            label.text = title as String
         }
         label.textAlignment = NSTextAlignment.Center
         self.addSubview(label)
-        
     }
     
     func setTitleText(text:String) {
         self.label.text = text
     }
     
+    func setTitleColor(color:UIColor){
+        self.label.textColor = color
+    }
+    
     func setNotificationBackgroundColor(color:UIColor) {
         self.backgroundColor = color
     }
     
-    func setTitleColor(color:UIColor){
-        self.label.textColor = color
-    }
     
     static func getNotificationSize() -> CGRect {
         var width = UIScreen.mainScreen().bounds.width
         var height = 50
         let size = CGRectMake(0, 0, CGRectGetMaxX(UIScreen.mainScreen().bounds), 50)
         return size
+    }
+    
+    func setDelayTime(interval: NSTimeInterval){
+        self.delay = interval
+    }
+    
+    
+    // Helper functions
+    private func getTopViewController() -> UIViewController {
+        var topController:UIViewController?
+        if var controller = UIApplication.sharedApplication().keyWindow?.rootViewController {
+            while let presentedViewController = controller.presentedViewController {
+                controller = presentedViewController
+            }
+            topController = controller
+        }
+        return topController!
+    }
+    
+    private func addSelfToTopControllerView() {
+        let topController = getTopViewController()
+        topController.view.addSubview(self)
     }
     
 }
