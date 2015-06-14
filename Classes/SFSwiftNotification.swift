@@ -15,7 +15,7 @@ enum AnimationType {
 
 struct AnimationSettings {
     var duration:NSTimeInterval = 0.5
-    var delay:NSTimeInterval = 0
+    var delay:NSTimeInterval = 1
     var damping:CGFloat = 0.6
     var velocity:CGFloat = 0.9
     var elasticity:CGFloat = 0.3
@@ -29,21 +29,22 @@ enum Direction {
 
 protocol SFSwiftNotificationProtocol {
     func didNotifyFinishedAnimation(results: Bool)
-    func didTapNotification()
+    func didTapNotification(notification: SFSwiftNotification)
 }
 
 class SFSwiftNotification: UIView, UICollisionBehaviorDelegate, UIDynamicAnimatorDelegate {
     
-    private var label = UILabel()
+    var label = UILabel()
+    var title = UILabel()
+    var icon = UIImage()
     var animationType:AnimationType?
     var animationSettings = AnimationSettings()
     var direction:Direction?
     var dynamicAnimator = UIDynamicAnimator()
     var delegate: SFSwiftNotificationProtocol?
-    var canNotify = true
     var offScreenFrame = CGRect()
-    var toFrame = CGRect()
-    private var delay = NSTimeInterval(1)
+    var onScreenFrame = CGRect()
+    private var hided = false
     
     required init(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
@@ -58,39 +59,34 @@ class SFSwiftNotification: UIView, UICollisionBehaviorDelegate, UIDynamicAnimato
         self.direction = .TopToBottom
         
         setUpLabel(title)
-        setNotificationBackgroundColor(UIColor.blackColor().colorWithAlphaComponent(0.5))
-        setTitleColor(UIColor.whiteColor())
+        useiOSDefaultStyle()
+        addSwipeRecognizer()
         
-        offScreen()
+        setOffScreenPosition()
     }
     
-    init(frame: CGRect, title: String?, animationType:AnimationType, direction:Direction, delegate: SFSwiftNotificationProtocol?) {
-        super.init(frame: frame)
+    init(title: String?, animationType:AnimationType, direction:Direction, delegate: SFSwiftNotificationProtocol?) {
+        let size = SFSwiftNotification.getNotificationSize()
+        super.init(frame:size)
         addSelfToTopControllerView()
 
         self.animationType = animationType
         self.direction = direction
-        self.delegate = delegate
         
         setUpLabel(title)
-        
-        // Create gesture recognizer to detect notification touches
-        var tapReconizer = UITapGestureRecognizer()
-        tapReconizer.addTarget(self, action: "invokeTapAction");
-        
-        // Add Touch recognizer to notification view
-        self.addGestureRecognizer(tapReconizer)
-        
-        offScreen()
+        if let delegate = delegate {
+            addTapRecognizer(delegate)
+        }
+        addSwipeRecognizer()
+
+        setOffScreenPosition()
     }
     
     func invokeTapAction() {
-        
-        self.delegate!.didTapNotification()
-        self.canNotify = true
+        self.delegate!.didTapNotification(self)
     }
     
-    func offScreen() {
+    func setOffScreenPosition() {
         
         self.offScreenFrame = self.frame
         
@@ -108,20 +104,17 @@ class SFSwiftNotification: UIView, UICollisionBehaviorDelegate, UIDynamicAnimato
     
     func animate(toFrame:CGRect, delay:NSTimeInterval) {
         
-        self.toFrame = toFrame
-        self.delay = delay
-        
-        if canNotify {
-            self.canNotify = false
+        self.onScreenFrame = toFrame
+        self.animationSettings.delay = delay
+
+        switch self.animationType! {
+        case .AnimationTypeCollision:
+            setupCollisionAnimation(onScreenFrame)
             
-            switch self.animationType! {
-            case .AnimationTypeCollision:
-                setupCollisionAnimation(toFrame)
-                
-            case .AnimationTypeBounce:
-                setupBounceAnimation(toFrame, delay: delay)
-            }
+        case .AnimationTypeBounce:
+            setupBounceAnimation(onScreenFrame, delay: delay)
         }
+
     }
     
     func setupCollisionAnimation(toFrame:CGRect) {
@@ -146,10 +139,10 @@ class SFSwiftNotification: UIView, UICollisionBehaviorDelegate, UIDynamicAnimato
         case .TopToBottom:
             break
         case .LeftToRight:
-            collisionBehavior.addBoundaryWithIdentifier("BoundaryIdentifierRight", fromPoint: CGPointMake(self.toFrame.width-0.5, 0), toPoint: CGPointMake(self.toFrame.width-0.5, self.toFrame.height))
+            collisionBehavior.addBoundaryWithIdentifier("BoundaryIdentifierRight", fromPoint: CGPointMake(self.onScreenFrame.width-0.5, 0), toPoint: CGPointMake(self.onScreenFrame.width-0.5, self.onScreenFrame.height))
             gravityBehavior.gravityDirection = CGVectorMake(10, 1)
         case .RightToLeft:
-            collisionBehavior.addBoundaryWithIdentifier("BoundaryIdentifierLeft", fromPoint: CGPointMake(+0.5, 0), toPoint: CGPointMake(+0.5, self.toFrame.height))
+            collisionBehavior.addBoundaryWithIdentifier("BoundaryIdentifierLeft", fromPoint: CGPointMake(+0.5, 0), toPoint: CGPointMake(+0.5, self.onScreenFrame.height))
             gravityBehavior.gravityDirection = CGVectorMake(-10, 1)
         }
     }
@@ -161,40 +154,43 @@ class SFSwiftNotification: UIView, UICollisionBehaviorDelegate, UIDynamicAnimato
             usingSpringWithDamping: animationSettings.damping,
             initialSpringVelocity: animationSettings.velocity,
             options: (.BeginFromCurrentState | .AllowUserInteraction),
-            animations:{
+            animations: {
                 self.frame = toFrame
-            }, completion: {
+            },
+            completion: {
                 (value: Bool) in
-                self.hide(toFrame, delay: delay)
+                self.hide()
             }
         )
     }
     
     func dynamicAnimatorDidPause(animator: UIDynamicAnimator) {
-        hide(self.frame, delay: self.delay)
+        hide()
     }
     
-    func hide(toFrame:CGRect, delay:NSTimeInterval) {
+    func hide() {
+        if(!hided) {
+            self.hided = true
+            UIView.animateWithDuration(animationSettings.duration,
+                delay: 0,
+                usingSpringWithDamping: animationSettings.damping,
+                initialSpringVelocity: animationSettings.velocity,
+                options: nil,
+                animations:{
+                    self.frame = self.offScreenFrame
+                },
+                completion: {
+                    (value: Bool) in
+                    self.delegate?.didNotifyFinishedAnimation(true)
+                    self.removeFromSuperview()
+                }
+            )
+        }
         
-        UIView.animateWithDuration(animationSettings.duration,
-            delay: delay,
-            usingSpringWithDamping: animationSettings.damping,
-            initialSpringVelocity: animationSettings.velocity,
-            options: (.BeginFromCurrentState | .AllowUserInteraction),
-            animations:{
-                self.frame = self.offScreenFrame
-            },
-            completion: {
-                (value: Bool) in
-                self.delegate?.didNotifyFinishedAnimation(true)
-                self.canNotify = true
-                self.removeFromSuperview()
-            }
-        )
     }
     
     func show(){
-        self.animate(self.frame, delay: self.delay)
+        self.animate(self.onScreenFrame, delay: self.animationSettings.delay)
     }
     
     private func setUpLabel(optionalTitle:String?) {
@@ -221,13 +217,12 @@ class SFSwiftNotification: UIView, UICollisionBehaviorDelegate, UIDynamicAnimato
     
     static func getNotificationSize() -> CGRect {
         var width = UIScreen.mainScreen().bounds.width
-        var height = 50
-        let size = CGRectMake(0, 0, CGRectGetMaxX(UIScreen.mainScreen().bounds), 50)
+        let size = CGRectMake(0, 0, CGRectGetMaxX(UIScreen.mainScreen().bounds), 44+8)
         return size
     }
     
     func setDelayTime(interval: NSTimeInterval){
-        self.delay = interval
+        self.animationSettings.delay = interval
     }
     
     
@@ -246,6 +241,35 @@ class SFSwiftNotification: UIView, UICollisionBehaviorDelegate, UIDynamicAnimato
     private func addSelfToTopControllerView() {
         let topController = getTopViewController()
         topController.view.addSubview(self)
+    }
+    
+    func addTapRecognizer(delegate: SFSwiftNotificationProtocol) {
+        // Create gesture recognizer to detect notification touches
+        self.delegate = delegate
+        var tapReconizer = UITapGestureRecognizer()
+        tapReconizer.addTarget(self, action: "invokeTapAction")
+        
+        // Add Touch recognizer to notification view
+        self.addGestureRecognizer(tapReconizer)
+
+    }
+    
+    private func addSwipeRecognizer() {
+        var swipeUp = UISwipeGestureRecognizer(target: self, action: "respondToSwipeGesture:")
+        swipeUp.direction = UISwipeGestureRecognizerDirection.Up
+        self.label.addGestureRecognizer(swipeUp)
+    }
+    
+    func respondToSwipeGesture(gesture: UIGestureRecognizer) {
+        println("gesture recognized \(gesture)")
+        //hide(0)
+    }
+    
+    
+    private func useiOSDefaultStyle() {
+        var blackColor = UIColor(red: 25/255, green: 25/255, blue: 25/255, alpha: 1)
+        setNotificationBackgroundColor(blackColor)
+        setTitleColor(UIColor.whiteColor())
     }
     
 }

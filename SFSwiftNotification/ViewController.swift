@@ -11,7 +11,6 @@ import UIKit
 class ViewController: UIViewController, SFSwiftNotificationProtocol {
     
     var notifyFrame:CGRect?
-    var notifyView:SFSwiftNotification!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -19,10 +18,11 @@ class ViewController: UIViewController, SFSwiftNotificationProtocol {
     }
     
     @IBAction func notify(sender : AnyObject) {
-        notifyFrame = CGRectMake(0, 0, CGRectGetMaxX(self.view.frame), 50)
         
-        notifyView = SFSwiftNotification(title: "hi")
-        self.notifyView!.show()
+        let notifyView = SFSwiftNotification(title: "😁😁😁😁😁😁")
+        notifyView.addTapRecognizer(self)
+        notifyView.show()
+        
     }
     
     func didNotifyFinishedAnimation(results: Bool) {
@@ -30,7 +30,7 @@ class ViewController: UIViewController, SFSwiftNotificationProtocol {
         println("SFSwiftNotification finished animation")
     }
     
-    func didTapNotification() {
+    func didTapNotification(notification: SFSwiftNotification) {
         
         let tapAlert = UIAlertController(title: "SFSwiftNotification",
             message: "You just tapped the notificatoion",
