@@ -34,9 +34,8 @@ protocol SFSwiftNotificationProtocol {
 
 class SFSwiftNotification: UIView, UICollisionBehaviorDelegate, UIDynamicAnimatorDelegate {
     
-    var label = UILabel()
     var title = UILabel()
-    var icon = UIImage()
+    var icon = UIImageView()
     var animationType:AnimationType?
     var animationSettings = AnimationSettings()
     var direction:Direction?
@@ -44,6 +43,10 @@ class SFSwiftNotification: UIView, UICollisionBehaviorDelegate, UIDynamicAnimato
     var delegate: SFSwiftNotificationProtocol?
     var offScreenFrame = CGRect()
     var onScreenFrame = CGRect()
+    
+    let iconSize:CGFloat = 40
+    let padding:CGFloat = 5
+
     private var hided = false
     
     required init(coder aDecoder: NSCoder) {
@@ -59,7 +62,28 @@ class SFSwiftNotification: UIView, UICollisionBehaviorDelegate, UIDynamicAnimato
         self.direction = .TopToBottom
         
         setUpLabel(title)
-        useiOSDefaultStyle()
+        //setUpIcon(UIImage(named: "obama")!)
+
+        useJDIDefaultStyle()
+        addSwipeRecognizer()
+        
+        setOffScreenPosition()
+    }
+    
+    init(title:String, icon:UIImage) {
+    
+        let size = SFSwiftNotification.getNotificationSize()
+        super.init(frame:size)
+        self.setUpIcon(icon)
+        addSelfToTopControllerView()
+        
+        self.animationType = .AnimationTypeCollision
+        self.direction = .TopToBottom
+        
+        setUpLabel(title)
+        //setUpIcon(UIImage(named: "obama")!)
+        
+        useJDIDefaultStyle()
         addSwipeRecognizer()
         
         setOffScreenPosition()
@@ -139,10 +163,10 @@ class SFSwiftNotification: UIView, UICollisionBehaviorDelegate, UIDynamicAnimato
         case .TopToBottom:
             break
         case .LeftToRight:
-            collisionBehavior.addBoundaryWithIdentifier("BoundaryIdentifierRight", fromPoint: CGPointMake(self.onScreenFrame.width-0.5, 0), toPoint: CGPointMake(self.onScreenFrame.width-0.5, self.onScreenFrame.height))
+            collisionBehavior.addBoundaryWithIdentifier("BoundaryIdentifierRight", fromPoint: CGPointMake(toFrame.width-0.5, 0), toPoint: CGPointMake(toFrame.width-0.5, toFrame.height))
             gravityBehavior.gravityDirection = CGVectorMake(10, 1)
         case .RightToLeft:
-            collisionBehavior.addBoundaryWithIdentifier("BoundaryIdentifierLeft", fromPoint: CGPointMake(+0.5, 0), toPoint: CGPointMake(+0.5, self.onScreenFrame.height))
+            collisionBehavior.addBoundaryWithIdentifier("BoundaryIdentifierLeft", fromPoint: CGPointMake(+0.5, 0), toPoint: CGPointMake(+0.5, toFrame.height))
             gravityBehavior.gravityDirection = CGVectorMake(-10, 1)
         }
     }
@@ -159,13 +183,33 @@ class SFSwiftNotification: UIView, UICollisionBehaviorDelegate, UIDynamicAnimato
             },
             completion: {
                 (value: Bool) in
-                self.hide()
+                self.hideWithDelay()
             }
         )
     }
     
     func dynamicAnimatorDidPause(animator: UIDynamicAnimator) {
-        hide()
+        hideWithDelay()
+    }
+    
+    private func hideWithDelay() {
+        if(!hided) {
+            self.hided = true
+            UIView.animateWithDuration(animationSettings.duration,
+                delay: animationSettings.delay,
+                usingSpringWithDamping: animationSettings.damping,
+                initialSpringVelocity: animationSettings.velocity,
+                options: nil,
+                animations:{
+                    self.frame = self.offScreenFrame
+                },
+                completion: {
+                    (value: Bool) in
+                    self.delegate?.didNotifyFinishedAnimation(true)
+                    self.removeFromSuperview()
+                }
+            )
+        }
     }
     
     func hide() {
@@ -186,28 +230,52 @@ class SFSwiftNotification: UIView, UICollisionBehaviorDelegate, UIDynamicAnimato
                 }
             )
         }
-        
     }
     
     func show(){
         self.animate(self.onScreenFrame, delay: self.animationSettings.delay)
     }
     
+    private func setUpIcon(image:UIImage) {
+        icon.frame = CGRect(x: padding, y: self.frame.height / 2.0 - iconSize / 2.0, width: iconSize, height: iconSize)
+        icon.image = image
+        self.addSubview(icon)
+    }
+    
+    func setIconToCircular() {
+        self.icon.layer.cornerRadius = self.icon.frame.size.width / 2.0;
+        self.icon.clipsToBounds = true
+    }
+    
+    func setIconToSquare() {
+        self.icon.layer.cornerRadius = 0
+    }
+    
     private func setUpLabel(optionalTitle:String?) {
-        label = UILabel(frame: self.frame)
-        if let title = optionalTitle{
-            label.text = title as String
+        var containsImage = icon.image != nil
+        var width = containsImage ? self.frame.width - iconSize : self.frame.width
+        var titleFrame = CGRect(x: iconSize + padding, y: 0, width: width, height: self.frame.height)
+        
+        title = UILabel(frame: titleFrame)
+        title.numberOfLines = 2
+        title.textAlignment = containsImage ? NSTextAlignment.Left : NSTextAlignment.Center
+
+        if let titleString = optionalTitle{
+            title.text = titleString as String
         }
-        label.textAlignment = NSTextAlignment.Center
-        self.addSubview(label)
+        
+        var xPosition = containsImage ? iconSize + padding * 2 : padding
+        title.frame.origin = CGPoint(x: xPosition, y: self.frame.height / 2.0 - title.frame.height / 2)
+
+        self.addSubview(title)
     }
     
     func setTitleText(text:String) {
-        self.label.text = text
+        self.title.text = text
     }
     
     func setTitleColor(color:UIColor){
-        self.label.textColor = color
+        self.title.textColor = color
     }
     
     func setNotificationBackgroundColor(color:UIColor) {
@@ -256,19 +324,19 @@ class SFSwiftNotification: UIView, UICollisionBehaviorDelegate, UIDynamicAnimato
     
     private func addSwipeRecognizer() {
         var swipeUp = UISwipeGestureRecognizer(target: self, action: "respondToSwipeGesture:")
-        swipeUp.direction = UISwipeGestureRecognizerDirection.Up
-        self.label.addGestureRecognizer(swipeUp)
+        swipeUp.direction = UISwipeGestureRecognizerDirection.Left
+        self.addGestureRecognizer(swipeUp)
     }
     
     func respondToSwipeGesture(gesture: UIGestureRecognizer) {
         println("gesture recognized \(gesture)")
-        //hide(0)
     }
     
-    
-    private func useiOSDefaultStyle() {
+    private func useJDIDefaultStyle() {
+        var green =  UIColor(red: 112/255.0, green: 228/255.0, blue: 151/255.0, alpha: 1.0)
+        
         var blackColor = UIColor(red: 25/255, green: 25/255, blue: 25/255, alpha: 1)
-        setNotificationBackgroundColor(blackColor)
+        setNotificationBackgroundColor(green)
         setTitleColor(UIColor.whiteColor())
     }
     

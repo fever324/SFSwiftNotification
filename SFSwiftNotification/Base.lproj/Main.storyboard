@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="6154.17" systemVersion="13E28" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="vXZ-lx-hvc">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="7706" systemVersion="14D136" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="vXZ-lx-hvc">
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="6153.11"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="7703"/>
     </dependencies>
     <scenes>
         <!--View Controller-->
@@ -13,11 +13,11 @@
                         <viewControllerLayoutGuide type="bottom" id="2fi-mo-0CV"/>
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="kh9-bI-dsS">
-                        <rect key="frame" x="0.0" y="0.0" width="480" height="480"/>
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="VCi-oC-kCE">
-                                <rect key="frame" x="174.5" y="225" width="131" height="30"/>
+                                <rect key="frame" x="235" y="285" width="131" height="30"/>
                                 <state key="normal" title="SFSwiftNotification">
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
@@ -25,13 +25,34 @@
                                     <action selector="notify:" destination="vXZ-lx-hvc" eventType="touchUpInside" id="Ib6-YR-fXp"/>
                                 </connections>
                             </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="5Jc-BI-Tbd">
+                                <rect key="frame" x="228" y="340" width="144" height="30"/>
+                                <state key="normal" title="Notification with icon">
+                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                </state>
+                                <connections>
+                                    <action selector="notifyWithIcon:" destination="vXZ-lx-hvc" eventType="touchUpInside" id="6N4-k3-9JO"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="9cG-Bf-Fgc">
+                                <rect key="frame" x="201" y="425" width="199" height="30"/>
+                                <state key="normal" title="Notification with circular icon">
+                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                </state>
+                                <connections>
+                                    <action selector="notifyWithRoundIcon:" destination="vXZ-lx-hvc" eventType="touchUpInside" id="uTy-bX-aLG"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                         <constraints>
-                            <constraint firstAttribute="centerX" secondItem="VCi-oC-kCE" secondAttribute="centerX" id="NU5-dg-kx9"/>
-                            <constraint firstAttribute="centerY" secondItem="VCi-oC-kCE" secondAttribute="centerY" id="dWg-Mu-6HA"/>
+                            <constraint firstItem="9cG-Bf-Fgc" firstAttribute="top" secondItem="5Jc-BI-Tbd" secondAttribute="bottom" constant="55" id="DbV-le-0Bz"/>
+                            <constraint firstItem="VCi-oC-kCE" firstAttribute="top" secondItem="jyV-Pf-zRb" secondAttribute="bottom" constant="265" id="FED-k7-Be1"/>
+                            <constraint firstAttribute="centerX" secondItem="5Jc-BI-Tbd" secondAttribute="centerX" id="Nqu-ie-tb7"/>
+                            <constraint firstItem="5Jc-BI-Tbd" firstAttribute="top" secondItem="VCi-oC-kCE" secondAttribute="bottom" constant="25" id="PlW-Hy-2NO"/>
+                            <constraint firstAttribute="centerX" secondItem="9cG-Bf-Fgc" secondAttribute="centerX" constant="-0.5" id="UOB-N1-kWu"/>
+                            <constraint firstAttribute="centerX" secondItem="VCi-oC-kCE" secondAttribute="centerX" constant="-0.5" id="xp5-24-YHv"/>
                         </constraints>
-                        <simulatedOrientationMetrics key="simulatedOrientationMetrics" orientation="landscapeRight"/>
                     </view>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="x5A-6p-PRh" sceneMemberID="firstResponder"/>

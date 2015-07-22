@@ -10,7 +10,6 @@ import UIKit
 
 class ViewController: UIViewController, SFSwiftNotificationProtocol {
     
-    var notifyFrame:CGRect?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -19,12 +18,26 @@ class ViewController: UIViewController, SFSwiftNotificationProtocol {
     
     @IBAction func notify(sender : AnyObject) {
         
-        let notifyView = SFSwiftNotification(title: "😁😁😁😁😁😁")
+        let notifyView = SFSwiftNotification(title: "How are you?")
         notifyView.addTapRecognizer(self)
+        notifyView.setDelayTime(2)
         notifyView.show()
         
     }
+    @IBAction func notifyWithRoundIcon(sender: AnyObject) {
+        let notifyView = SFSwiftNotification(title: "How are you?", icon: UIImage(named: "obama")!)
+        notifyView.setIconToCircular()
+        notifyView.addTapRecognizer(self)
+        notifyView.setDelayTime(2)
+        notifyView.show()
+    }
     
+    @IBAction func notifyWithIcon(sender: AnyObject) {
+        let notifyView = SFSwiftNotification(title: "How are you?", icon: UIImage(named: "obama")!)
+        notifyView.addTapRecognizer(self)
+        notifyView.setDelayTime(2)
+        notifyView.show()
+    }
     func didNotifyFinishedAnimation(results: Bool) {
         
         println("SFSwiftNotification finished animation")
